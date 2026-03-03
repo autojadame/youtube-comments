@@ -1,0 +1,23 @@
+<div class="card">
+  <h1 class="h1">Conectar canal</h1>
+  <% if (!oauthClient) { %>
+    <div class="flash error">Primero sube el client secret JSON en <a href="/setup">/setup</a>.</div>
+  <% } else { %>
+    <p class="muted">
+      OAuth seleccionado: <b><%= oauthClient.name || ("OAuth #" + oauthClient.id) %></b><br/>
+      Se pedirá permiso con el scope <code>youtube.force-ssl</code> para poder responder comentarios.
+    </p>
+
+    <div class="muted">Redirect URI requerido:</div>
+    <pre><%= requiredRedirect %></pre>
+
+    <% if (!redirectOk) { %>
+      <div class="flash error">
+        No puedo iniciar el OAuth hasta que añadas ese redirect URI en Google Cloud Console.
+      </div>
+      <a class="btn" href="/setup">Volver a setup</a>
+    <% } else { %>
+      <a class="btn" href="/oauth2/authorize?client_id=<%= oauthClient.id %>">Autorizar con Google</a>
+    <% } %>
+  <% } %>
+</div>

@@ -1,0 +1,39 @@
+<div class="card">
+  <h1 class="h1">Setup OAuth (subir client secret JSON)</h1>
+  <p class="muted">
+    Sube el archivo <code>client_secret_*.json</code> de Google Cloud Console (OAuth 2.0 Client ID).
+    El bot usará esos datos para pedir permisos y renovar tokens.
+  </p>
+
+  <form method="post" action="/setup" enctype="multipart/form-data" style="margin-top:16px;">
+    <label>Nombre (opcional)</label>
+    <input type="text" name="name" placeholder="Mi proyecto OAuth"/>
+
+    <label>client secret JSON</label>
+    <input type="file" name="client_secret" accept="application/json" required/>
+
+    <div style="margin-top:14px; display:flex; gap:10px; flex-wrap:wrap;">
+      <button class="btn" type="submit">Guardar OAuth</button>
+      <a class="btn secondary" href="/connect">Ir a conectar canal</a>
+    </div>
+  </form>
+
+  <% if (oauthClient) { %>
+    <hr style="border:0;border-top:1px solid rgba(255,255,255,.08); margin:16px 0;"/>
+    <h3>OAuth guardado</h3>
+    <div class="muted">Client ID:</div>
+    <pre><%= oauthClient.client_id %></pre>
+
+    <div class="muted">Redirect URI que debe estar autorizado en Google Cloud:</div>
+    <pre><%= requiredRedirect %></pre>
+
+    <% if (!redirectOk) { %>
+      <div class="flash error">
+        Ese redirect URI <b>no aparece</b> en tu JSON. Añádelo en Google Cloud Console:
+        Credentials → OAuth 2.0 Client IDs → Authorized redirect URIs.
+      </div>
+    <% } else { %>
+      <div class="flash ok">Perfecto: el redirect URI está autorizado. Ya puedes conectar el canal.</div>
+    <% } %>
+  <% } %>
+</div>

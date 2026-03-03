@@ -1,51 +1,43 @@
-import axios from "axios";
-import { config } from "../config.js";
+const { logger } = require("../logger");
 
-export async function deepseekChat({ messages, maxTokens, temperature, model }) {
-  if (!config.deepseek.apiKey) throw new Error("DEEPSEEK_API_KEY is not set");
+/**
+ * DeepSeek Chat Completions
+ * POST https://api.deepseek.com/chat/completions
+ * Docs: https://api-docs.deepseek.com/api/create-chat-completion
+ */
+async function deepseekChat({ system, user, model }) {
+  const apiKey = process.env.DEEPSEEK_API_KEY;
+  if (!apiKey) throw new Error("Missing DEEPSEEK_API_KEY in .env");
 
-  const url = `${config.deepseek.baseUrl}/chat/completions`;
   const body = {
-    model: model || config.deepseek.model,
-    messages,
-    max_tokens: Number(maxTokens ?? config.deepseek.maxTokens),
-    temperature: Number(temperature ?? config.deepseek.temperature),
-    stream: false,
+    model: model || process.env.DEEPSEEK_MODEL || "deepseek-chat",
+    messages: [
+      ...(system ? [{ role: "system", content: system }] : []),
+      { role: "user", content: user },
+    ],
+    temperature: 0.7,
+    max_tokens: 300,
   };
 
-  const res = await axios.post(url, body, {
+  const res = await fetch("https://api.deepseek.com/chat/completions", {
+    method: "POST",
     headers: {
-      Authorization: `Bearer ${config.deepseek.apiKey}`,
+      "Authorization": `Bearer ${apiKey}`,
       "Content-Type": "application/json",
     },
-    timeout: 60_000,
+    body: JSON.stringify(body),
   });
 
-  const content = res.data?.choices?.[0]?.message?.content;
-  return (content || "").trim();
+  if (!res.ok) {
+    const txt = await res.text().catch(() => "");
+    logger.error({ status: res.status, txt }, "DeepSeek API error");
+    throw new Error(`DeepSeek API error: ${res.status} ${txt}`);
+  }
+
+  const data = await res.json();
+  const content = data?.choices?.[0]?.message?.content;
+  if (!content) throw new Error("DeepSeek returned empty content");
+  return content.trim();
 }
 
-export async function generateCommentReply({ platform, channelTitle, videoTitle, authorName, commentText, langHint = "auto" }) {
-  const sys = {
-    role: "system",
-    content:
-      "You are a helpful assistant for a YouTube/Meta creator. " +
-      "Write a short, friendly reply to a viewer comment. " +
-      "Rules: (1) 1-2 sentences, (2) no hashtags, (3) no asking for likes/subscriptions, " +
-      "(4) don't mention that you are AI or a bot, (5) if the comment is hateful, reply calmly or choose not to engage." ,
-  };
-
-  const context = [
-    `Platform: ${platform}`,
-    channelTitle ? `Channel: ${channelTitle}` : null,
-    videoTitle ? `Video: ${videoTitle}` : null,
-    authorName ? `Comment author: ${authorName}` : null,
-    `Comment: ${commentText}`,
-    "Reply in the same language as the comment (Spanish if unclear).",
-  ].filter(Boolean).join("\n");
-
-  const user = { role: "user", content: context };
-
-  const reply = await deepseekChat({ messages: [sys, user] });
-  return reply;
-}
+module.exports = { deepseekChat };

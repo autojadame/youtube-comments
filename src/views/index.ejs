@@ -1,0 +1,57 @@
+<div class="grid">
+  <div class="card">
+    <h1 class="h1">Conecta tu canal y responde comentarios con IA</h1>
+    <p class="muted">
+      Flujo: subes el <b>client secret JSON</b> (OAuth), conectas tu canal (consent), y el worker responde nuevos comentarios usando DeepSeek.
+    </p>
+    <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:14px;">
+      <a class="btn" href="/setup">1) Subir OAuth JSON</a>
+      <a class="btn secondary" href="/connect">2) Conectar canal</a>
+    </div>
+
+    <hr style="border:0;border-top:1px solid rgba(255,255,255,.08); margin:16px 0;"/>
+
+    <h3 style="margin:0 0 10px 0;">Conexiones activas</h3>
+    <% if (!connections || connections.length === 0) { %>
+      <div class="muted">No hay conexiones todavía.</div>
+    <% } else { %>
+      <div style="display:grid; gap:10px;">
+        <% connections.forEach(c => { %>
+          <div class="card" style="padding:12px; border-radius:14px;">
+            <div style="display:flex; justify-content:space-between; gap:10px; align-items:center;">
+              <div>
+                <div style="font-weight:700;"><%= c.channel_title || c.channel_id %></div>
+                <div class="muted" style="font-size:13px;">Channel ID: <%= c.channel_id %></div>
+                <div style="margin-top:6px;">
+                  <span class="pill"><%= c.enabled ? "enabled" : "disabled" %></span>
+                  <% if (c.last_polled_at) { %>
+                    <span class="pill">last poll: <%= c.last_polled_at %></span>
+                  <% } %>
+                </div>
+              </div>
+              <div style="display:flex; gap:10px; flex-wrap:wrap; justify-content:flex-end;">
+                <a class="btn secondary" href="/manage/<%= c.connection_key %>">Manage</a>
+              </div>
+            </div>
+            <% if (c.last_error) { %>
+              <div class="flash error" style="margin-top:10px;"><%= c.last_error %></div>
+            <% } %>
+          </div>
+        <% }) %>
+      </div>
+    <% } %>
+  </div>
+
+  <div class="card">
+    <h3 style="margin-top:0;">Limitaciones</h3>
+    <ul class="muted">
+      <li>Se puede <b>responder</b> comentarios vía API.</li>
+      <li>No hay endpoint oficial para <b>corazón/heart</b> en comentarios.</li>
+      <li>El bot evita duplicados guardando qué comentarios ya respondió.</li>
+    </ul>
+
+    <h3>Worker</h3>
+    <div class="muted">Ejecuta en otra terminal:</div>
+    <pre>yarn worker</pre>
+  </div>
+</div>

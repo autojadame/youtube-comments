@@ -1,0 +1,57 @@
+<div class="card">
+  <h1 class="h1">Gestionar conexión</h1>
+  <p class="muted">Canal: <b><%= conn.channel_title || conn.channel_id %></b></p>
+
+  <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-top:12px;">
+    <span class="pill"><%= conn.enabled ? "enabled" : "disabled" %></span>
+    <% if (conn.last_polled_at) { %><span class="pill">last poll: <%= conn.last_polled_at %></span><% } %>
+  </div>
+
+  <% if (conn.last_error) { %>
+    <div class="flash error" style="margin-top:12px;"><%= conn.last_error %></div>
+  <% } %>
+
+  <form method="post" action="/manage/<%= conn.connection_key %>/toggle" style="margin-top:14px;">
+    <button class="btn <%= conn.enabled ? "danger" : "" %>" type="submit">
+      <%= conn.enabled ? "Desactivar bot" : "Activar bot" %>
+    </button>
+  </form>
+
+  <hr style="border:0;border-top:1px solid rgba(255,255,255,.08); margin:16px 0;"/>
+
+  <h3>Config respuesta</h3>
+  <form method="post" action="/manage/<%= conn.connection_key %>/settings">
+    <label>Idioma</label>
+    <select name="reply_language">
+      <option value="es" <%= (settings.reply_language === "es") ? "selected" : "" %>>es</option>
+      <option value="en" <%= (settings.reply_language === "en") ? "selected" : "" %>>en</option>
+    </select>
+
+    <label>System prompt (DeepSeek)</label>
+    <textarea name="system_prompt"><%= settings.system_prompt %></textarea>
+
+    <div style="margin-top:14px;">
+      <button class="btn secondary" type="submit">Guardar ajustes</button>
+    </div>
+  </form>
+
+  <hr style="border:0;border-top:1px solid rgba(255,255,255,.08); margin:16px 0;"/>
+
+  <h3>Últimas respuestas</h3>
+  <% if (!recent || recent.length === 0) { %>
+    <div class="muted">Aún no hay respuestas registradas.</div>
+  <% } else { %>
+    <div style="display:grid; gap:10px;">
+      <% recent.forEach(r => { %>
+        <div class="card" style="padding:12px;">
+          <div class="muted" style="font-size:12px;">comment_id: <%= r.comment_id %> · <%= r.replied_at %></div>
+          <pre style="white-space:pre-wrap;"><%= r.reply_text %></pre>
+        </div>
+      <% }) %>
+    </div>
+  <% } %>
+
+  <div style="margin-top:16px;">
+    <a class="btn" href="/">Volver</a>
+  </div>
+</div>
