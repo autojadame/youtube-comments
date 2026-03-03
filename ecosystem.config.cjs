@@ -4,7 +4,7 @@ module.exports = {
             name: "youtube-comments",
             cwd: "/home/admin/youtube-comments",
             script: "yarn",
-            args: "start",
+            args: "dev",
             env: {
                 NODE_ENV: "production",
                 PORT: "3777",
