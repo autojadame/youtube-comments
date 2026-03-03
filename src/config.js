@@ -23,25 +23,6 @@ export const config = {
     temperature: Number(process.env.DEEPSEEK_TEMPERATURE || 0.7),
   },
 
-  // Meta (Facebook / Instagram) — kept compatible with your existing project
-  meta: {
-    graphVersion: required("META_GRAPH_VERSION") || "v25.0",
-    appId: required("META_APP_ID"),
-    appSecret: required("META_APP_SECRET"),
-    redirectUri: required("META_REDIRECT_URI"),
-    loginConfigId: required("META_LOGIN_CONFIG_ID"),
-    scopes: (required("META_SCOPES")
-      ? required("META_SCOPES").split(",").map(s => s.trim()).filter(Boolean)
-      : [
-          // publishing
-          "pages_manage_posts",
-          "pages_read_engagement",
-          "pages_manage_metadata",
-          // comments
-          "pages_manage_engagement",
-          "instagram_manage_comments"
-        ]),
-  },
 
   // YouTube
   youtube: {
@@ -58,7 +39,6 @@ export const config = {
   worker: {
     // how often to poll (cron format)
     youtubeCron: process.env.YT_CRON || "*/2 * * * *", // every 2 minutes
-    metaCron: process.env.META_CRON || "*/5 * * * *", // every 5 minutes
     // safety / anti-spam
     maxRepliesPerRun: Number(process.env.MAX_REPLIES_PER_RUN || 30),
     replyCooldownSeconds: Number(process.env.REPLY_COOLDOWN_SECONDS || 2),
