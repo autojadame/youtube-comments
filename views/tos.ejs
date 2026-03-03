@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title><%= title ? `${title} — ${appName}` : appName %></title>
+  <link rel="preconnect" href="https://rsms.me">
+  <link rel="stylesheet" href="https://rsms.me/inter/inter.css">
+  <link rel="stylesheet" href="/public/css/app.css" />
+  <link rel="icon" href="/public/assets/logo.svg" />
+</head>
+<body>
+  <div class="app-shell">
+    <%- include('./_partials/nav.ejs') %>
+    <main class="container">
+      <%- include('./_partials/flash.ejs') %>
+
+      <div class="card">
+        <h1 class="h1" style="font-size:32px;">Terms of Service</h1>
+        <p class="lead">Last updated: <%= new Date().toISOString().slice(0,10) %></p>
+
+        <p class="small">
+          By using this service, you agree to use it only for business accounts and assets you are authorized to manage.
+          You are responsible for the content you publish and for compliance with applicable laws and platform policies.
+        </p>
+
+        <div class="hr"></div>
+
+        <div class="card-title">Acceptable use</div>
+        <ul class="ul">
+          <li>Publish only to assets you own or have explicit permission to manage.</li>
+          <li>Do not attempt to bypass platform limits, permissions, or security controls.</li>
+          <li>Do not upload illegal, infringing, or harmful content.</li>
+        </ul>
+      </div>
+    </main>
+    <%- include('./_partials/footer.ejs') %>
+  </div>
+</body>
+</html>

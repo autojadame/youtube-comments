@@ -1,0 +1,71 @@
+.form { display:grid; gap: 14px; }
+.label { font-size: 13px; color: rgba(255,255,255,0.75); margin-bottom: 6px; }
+.req:after { content: " *"; color: rgba(239,68,68,0.9); }
+.input, select {
+  width: 100%;
+  padding: 11px 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,0.14);
+  background: rgba(0,0,0,0.22);
+  color: rgba(255,255,255,0.92);
+  outline: none;
+}
+.input:focus, select:focus { border-color: rgba(124,58,237,0.6); box-shadow: 0 0 0 3px rgba(124,58,237,0.18); }
+
+.two-col { display:grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+@media (max-width: 900px) { .two-col { grid-template-columns: 1fr; } }
+
+.lang-card {
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 16px;
+  padding: 14px;
+  background: rgba(255,255,255,0.04);
+}
+.lang-head { display:flex; justify-content:space-between; align-items:center; gap: 10px; }
+.row { display:flex; gap: 8px; align-items:center; flex-wrap: wrap; }
+.tag { font-weight: 700; }
+.ck { display:flex; gap: 8px; align-items:center; color: rgba(255,255,255,0.8); font-size: 13px; }
+
+.ig-pill {
+  display:inline-flex; padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,0.12);
+  background: rgba(255,255,255,0.05);
+  font-size: 12px;
+  color: rgba(255,255,255,0.75);
+}
+
+/* xselect minimal (keeps your template functional even without your original CSS) */
+.xselect { position: relative; }
+.xselect-btn {
+  width: 100%;
+  display:flex; justify-content:space-between; align-items:center;
+  padding: 11px 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,0.14);
+  background: rgba(0,0,0,0.22);
+  color: rgba(255,255,255,0.92);
+  cursor: pointer;
+}
+.xselect-pop {
+  display:none;
+  position:absolute; left:0; right:0; top: calc(100% + 8px);
+  background: rgba(11,15,25,0.95);
+  border: 1px solid rgba(255,255,255,0.14);
+  border-radius: 14px;
+  padding: 10px;
+  z-index: 50;
+}
+.xselect.open .xselect-pop { display:block; }
+.xselect-search { width: 100%; margin-bottom: 8px; }
+.xselect-list { max-height: 320px; overflow:auto; display:grid; gap: 6px; }
+.xselect-opt {
+  padding: 10px;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,0.10);
+  background: rgba(255,255,255,0.04);
+  cursor: pointer;
+}
+.xselect-opt:hover { background: rgba(255,255,255,0.08); }
+.xselect-opt-title { font-weight: 700; }
+.xselect-opt-sub { display:flex; gap: 12px; color: rgba(255,255,255,0.70); font-size: 12px; margin-top: 4px; }

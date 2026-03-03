@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title><%= title ? `${title} — ${appName}` : appName %></title>
+
+  <meta name="description" content="Connect Meta business assets and publish content securely." />
+  <meta name="robots" content="index,follow" />
+
+  <!-- Inter (opcional) -->
+  <link rel="preconnect" href="https://rsms.me">
+  <link rel="stylesheet" href="https://rsms.me/inter/inter.css">
+
+  <link rel="stylesheet" href="/public/css/app.css" />
+  <link rel="icon" href="/public/assets/logo.svg" />
+</head>
+<body>
+  <div class="app-shell">
+    <% include _partials/nav.ejs %>
+
+    <main class="container">
+      <% include _partials/flash.ejs %>
+      <%- body %>
+    </main>
+
+    <% include _partials/footer.ejs %>
+  </div>
+</body>
+</html>

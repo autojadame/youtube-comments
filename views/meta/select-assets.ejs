@@ -1,0 +1,585 @@
+<!-- views/meta/select-assets.ejs -->
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title><%= "Select Assets — " + appName %></title>
+
+  <meta name="description" content="Map EN/ES channels to Meta Pages and store Instagram linkage if available." />
+  <meta name="robots" content="noindex,nofollow" />
+
+  <link rel="preconnect" href="https://rsms.me">
+  <link rel="stylesheet" href="https://rsms.me/inter/inter.css">
+  <link rel="stylesheet" href="/public/css/app.css" />
+  <link rel="icon" href="/public/assets/logo.svg" />
+
+  <link rel="stylesheet" href="/public/css/select-assets.css" />
+</head>
+
+<body>
+  <div class="app-shell">
+    <%- include('../_partials/nav.ejs') %>
+
+    <main class="container">
+      <%- include('../_partials/flash.ejs') %>
+
+      <%
+        // -------------------------------------------------------------------
+        // FIX: evitar "en is not defined" / "es is not defined" en EJS
+        // - Si el backend pasa connByLang, lo usamos
+        // - Si no existe, en/es = null (y el template no rompe)
+        // - Además, inicializamos defaults robustos para enable/page/channel
+        // -------------------------------------------------------------------
+        const _connByLang = (typeof connByLang !== "undefined") ? connByLang : null;
+
+        const en = (_connByLang && _connByLang.en) ? _connByLang.en : null;
+        const es = (_connByLang && _connByLang.es) ? _connByLang.es : null;
+
+        const en_page_id_val =
+          (typeof enPageIdInit !== "undefined" && enPageIdInit) ? String(enPageIdInit) :
+          (en && en.page_id) ? String(en.page_id) : "";
+
+        const es_page_id_val =
+          (typeof esPageIdInit !== "undefined" && esPageIdInit) ? String(esPageIdInit) :
+          (es && es.page_id) ? String(es.page_id) : "";
+
+        const en_channel_val =
+          (typeof enChannelInit !== "undefined" && enChannelInit) ? String(enChannelInit) :
+          (en && en.channel) ? String(en.channel) : "";
+
+        const es_channel_val =
+          (typeof esChannelInit !== "undefined" && esChannelInit) ? String(esChannelInit) :
+          (es && es.channel) ? String(es.channel) : "";
+
+        const enEnabledInitSafe =
+          (typeof enEnabledInit !== "undefined") ? !!enEnabledInit :
+          !!(en_page_id_val || en_channel_val); // si viene algo guardado, lo damos como enabled
+
+        const esEnabledInitSafe =
+          (typeof esEnabledInit !== "undefined") ? !!esEnabledInit :
+          !!(es_page_id_val || es_channel_val);
+      %>
+
+      <section class="grid">
+        <div class="card">
+          <div class="pill">Connection setup</div>
+          <h1 class="h1" style="font-size:30px;">Organization & Channel Mapping</h1>
+
+          <p class="lead">
+            Assign Facebook Pages (and linked Instagram professional accounts, if any) to your organization channels for English and/or Spanish.
+            At least one language mapping is required.
+          </p>
+
+          <div class="kpi" style="margin-top:12px;">
+            <div class="pill">session: <b><%= (is_connected ? "connected" : "not connected") %></b></div>
+            <% if (orgId) { %><div class="pill">org_id: <b><%= orgId %></b></div><% } %>
+          </div>
+
+          <div class="hr"></div>
+
+          <% if (!pages || pages.length === 0) { %>
+            <div class="flash warn">
+              <div class="flash-dot"></div>
+              <div class="flash-msg">
+                No Pages were returned for this account. This usually means you don’t have admin rights,
+                or you did not grant the required permissions during authorization.
+              </div>
+            </div>
+
+            <div class="btn-row" style="margin-top:14px;">
+              <a class="btn primary" href="/">Back to home</a>
+              <a class="btn" href="/meta/connect">Reconnect</a>
+            </div>
+
+          <% } else { %>
+
+            <form class="form" method="post" action="/meta/confirm" id="mappingForm">
+              <!-- Organization -->
+              <div>
+                <div class="label"><span class="req">Organization name</span></div>
+                <input
+                  class="input"
+                  type="text"
+                  name="org_name"
+                  value="<%= orgName || "" %>"
+                  placeholder="e.g., Luxverbi"
+                  required
+                />
+                <div class="small hint">
+                  This is for humans. The system can derive or store a stable <code>org_id</code> server-side if needed.
+                </div>
+              </div>
+
+              <div class="hr"></div>
+
+              <div class="card-title">Language mappings</div>
+              <p class="small">
+                Enable English and/or Spanish and assign a Facebook Page + a channel key (<code>channel</code>).
+                The channel is what your worker uses (e.g., <code>luxverbien</code>, <code>luxverbies</code>).
+              </p>
+
+              <div class="two-col" style="margin-top:12px;">
+                <!-- EN -->
+                <div class="lang-card" id="card_en">
+                  <div class="lang-head">
+                    <div class="row">
+                      <span class="tag">English</span>
+                      <span class="pill">lang: <b>en</b></span>
+                    </div>
+                    <label class="ck">
+                      <input
+                        type="checkbox"
+                        name="en_enabled"
+                        id="en_enabled"
+                        value="1"
+                        <%= enEnabledInitSafe ? "checked" : "" %>
+                      />
+                      <span>Enable</span>
+                    </label>
+                  </div>
+
+                  <div style="margin-top:12px;">
+                    <div class="label">Facebook Page</div>
+
+                    <!-- Hidden field used by backend -->
+                    <input type="hidden" name="en_page_id" id="en_page_id" value="<%= en_page_id_val %>" />
+
+                    <!-- Pretty select -->
+                    <div class="xselect" data-target="en_page_id" id="xsel_en">
+                      <button type="button" class="xselect-btn" aria-haspopup="listbox" aria-expanded="false">
+                        <span class="xselect-value">— Select a Page —</span>
+                        <span class="xselect-caret"></span>
+                      </button>
+
+                      <div class="xselect-pop" role="listbox" tabindex="-1">
+                        <input class="xselect-search" type="text" placeholder="Search pages..." />
+                        <div class="xselect-list">
+                          <div class="xselect-opt" role="option" tabindex="0"
+                               data-value="" data-label="" data-ig="">
+                            <div class="xselect-opt-title">— Select a Page —</div>
+                            <div class="xselect-opt-sub"><span>No selection</span></div>
+                          </div>
+
+                          <% pages.forEach(p => { %>
+                            <div
+                              class="xselect-opt"
+                              role="option"
+                              tabindex="0"
+                              data-value="<%= p.id %>"
+                              data-label="<%= (p.name || '') %>"
+                              data-ig="<%= p.ig_user_id ? (p.ig_username ? ('@' + p.ig_username) : p.ig_user_id) : '' %>"
+                            >
+                              <div class="xselect-opt-title"><%= p.name %></div>
+                              <div class="xselect-opt-sub">
+                                <span>ID: <%= p.id %></span>
+                                <% if (p.ig_user_id) { %>
+                                  <span>IG: <%= p.ig_username ? ("@" + p.ig_username) : p.ig_user_id %></span>
+                                <% } %>
+                              </div>
+                            </div>
+                          <% }) %>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="small hint">
+                      Instagram linkage will be detected and stored when you confirm (if available).
+                    </div>
+                  </div>
+
+                  <div style="margin-top:12px;">
+                    <div class="label">Channel key (stored in <code>meta_connections.channel</code>)</div>
+                    <input
+                      class="input"
+                      type="text"
+                      name="en_channel"
+                      id="en_channel"
+                      value="<%= en_channel_val %>"
+                      placeholder="e.g., luxverbien"
+                    />
+                    <div class="mini hint">
+                      Lowercase, no spaces recommended. This is the key your jobs/worker will reference.
+                    </div>
+                  </div>
+
+                  <div style="margin-top:10px;">
+                    <span class="ig-pill" id="en_ig_info">IG: —</span>
+                  </div>
+                </div>
+
+                <!-- ES -->
+                <div class="lang-card" id="card_es">
+                  <div class="lang-head">
+                    <div class="row">
+                      <span class="tag">Spanish</span>
+                      <span class="pill">lang: <b>es</b></span>
+                    </div>
+                    <label class="ck">
+                      <input
+                        type="checkbox"
+                        name="es_enabled"
+                        id="es_enabled"
+                        value="1"
+                        <%= esEnabledInitSafe ? "checked" : "" %>
+                      />
+                      <span>Enable</span>
+                    </label>
+                  </div>
+
+                  <div style="margin-top:12px;">
+                    <div class="label">Facebook Page</div>
+
+                    <!-- Hidden field used by backend -->
+                    <input type="hidden" name="es_page_id" id="es_page_id" value="<%= es_page_id_val %>" />
+
+                    <!-- Pretty select -->
+                    <div class="xselect" data-target="es_page_id" id="xsel_es">
+                      <button type="button" class="xselect-btn" aria-haspopup="listbox" aria-expanded="false">
+                        <span class="xselect-value">— Select a Page —</span>
+                        <span class="xselect-caret"></span>
+                      </button>
+
+                      <div class="xselect-pop" role="listbox" tabindex="-1">
+                        <input class="xselect-search" type="text" placeholder="Search pages..." />
+                        <div class="xselect-list">
+                          <div class="xselect-opt" role="option" tabindex="0"
+                               data-value="" data-label="" data-ig="">
+                            <div class="xselect-opt-title">— Select a Page —</div>
+                            <div class="xselect-opt-sub"><span>No selection</span></div>
+                          </div>
+
+                          <% pages.forEach(p => { %>
+                            <div
+                              class="xselect-opt"
+                              role="option"
+                              tabindex="0"
+                              data-value="<%= p.id %>"
+                              data-label="<%= (p.name || '') %>"
+                              data-ig="<%= p.ig_user_id ? (p.ig_username ? ('@' + p.ig_username) : p.ig_user_id) : '' %>"
+                            >
+                              <div class="xselect-opt-title"><%= p.name %></div>
+                              <div class="xselect-opt-sub">
+                                <span>ID: <%= p.id %></span>
+                                <% if (p.ig_user_id) { %>
+                                  <span>IG: <%= p.ig_username ? ("@" + p.ig_username) : p.ig_user_id %></span>
+                                <% } %>
+                              </div>
+                            </div>
+                          <% }) %>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="small hint">
+                      Instagram linkage will be detected and stored when you confirm (if available).
+                    </div>
+                  </div>
+
+                  <div style="margin-top:12px;">
+                    <div class="label">Channel key (stored in <code>meta_connections.channel</code>)</div>
+                    <input
+                      class="input"
+                      type="text"
+                      name="es_channel"
+                      id="es_channel"
+                      value="<%= es_channel_val %>"
+                      placeholder="e.g., luxverbies"
+                    />
+                    <div class="mini hint">
+                      Lowercase, no spaces recommended. This is the key your jobs/worker will reference.
+                    </div>
+                  </div>
+
+                  <div style="margin-top:10px;">
+                    <span class="ig-pill" id="es_ig_info">IG: —</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="hr"></div>
+
+              <div class="flash warn" id="formWarn" style="display:none;">
+                <div class="flash-dot"></div>
+                <div class="flash-msg" id="formWarnMsg">Please enable at least one language and select a Page.</div>
+              </div>
+
+              <div class="btn-row" style="margin-top:6px;">
+                <button class="btn primary" type="submit">Confirm and Save</button>
+                <a class="btn" href="/">Cancel</a>
+              </div>
+            </form>
+
+            <div class="hr"></div>
+
+            <div class="card-title">Troubleshooting</div>
+            <ul class="ul">
+              <li>If you don’t see the correct Page, ensure you are an Admin of that Page.</li>
+              <li>Re-run the connect flow and accept all requested permissions.</li>
+              <li>For Instagram publishing, the IG account must be Professional and linked to a Page.</li>
+            </ul>
+
+          <% } %>
+        </div>
+
+        <aside>
+          <div class="card">
+            <div class="card-title">What gets stored</div>
+            <p class="small">
+              For each enabled language, the server stores: <code>page_id</code>, <code>page_token</code>,
+              optional <code>ig_user_id</code>, and the <code>channel</code> key you provide.
+            </p>
+            <ul class="ul">
+              <li>org_id + lang</li>
+              <li>channel (for the worker)</li>
+              <li>Page token stored server-side</li>
+              <li>IG business account id (optional)</li>
+            </ul>
+          </div>
+
+          <div class="card">
+            <div class="card-title">Security model</div>
+            <p class="small">
+              Tokens are not exposed to end-users. Internal publishing is protected by an API key and should only be called
+              by your private services/scripts.
+            </p>
+          </div>
+        </aside>
+      </section>
+    </main>
+
+    <%- include('../_partials/footer.ejs') %>
+  </div>
+
+  <script>
+    (function () {
+      const enEnabled = document.getElementById("en_enabled");
+      const esEnabled = document.getElementById("es_enabled");
+
+      const enCard = document.getElementById("card_en");
+      const esCard = document.getElementById("card_es");
+
+      const enPageHidden = document.getElementById("en_page_id");
+      const esPageHidden = document.getElementById("es_page_id");
+
+      const enChannel = document.getElementById("en_channel");
+      const esChannel = document.getElementById("es_channel");
+
+      const warn = document.getElementById("formWarn");
+      const warnMsg = document.getElementById("formWarnMsg");
+
+      const enIgInfo = document.getElementById("en_ig_info");
+      const esIgInfo = document.getElementById("es_ig_info");
+
+      function slugify(s){
+        return String(s || "")
+          .trim()
+          .toLowerCase()
+          .normalize("NFKD").replace(/[\u0300-\u036f]/g, "")
+          .replace(/[^a-z0-9]+/g, "")
+          .slice(0, 32);
+      }
+
+      function setEnabled(lang, on){
+        const card = (lang === "en") ? enCard : esCard;
+        const ch = (lang === "en") ? enChannel : esChannel;
+        const root = document.getElementById(lang === "en" ? "xsel_en" : "xsel_es");
+        const selBtn = root ? root.querySelector(".xselect-btn") : null;
+        const selSearch = root ? root.querySelector(".xselect-search") : null;
+
+        if (on) {
+          card.classList.remove("disabled");
+          ch.disabled = false;
+          if (selBtn) selBtn.disabled = false;
+          if (selSearch) selSearch.disabled = false;
+        } else {
+          card.classList.add("disabled");
+          ch.disabled = true;
+          if (selBtn) selBtn.disabled = true;
+          if (selSearch) selSearch.disabled = true;
+        }
+      }
+
+      function updateIgPill(lang){
+        const hidden = (lang === "en") ? enPageHidden : esPageHidden;
+        const pill = (lang === "en") ? enIgInfo : esIgInfo;
+
+        if (!hidden.value) {
+          pill.textContent = "IG: —";
+          return;
+        }
+
+        const root = document.getElementById(lang === "en" ? "xsel_en" : "xsel_es");
+        const selected = root ? root.querySelector('.xselect-opt[aria-selected="true"]') : null;
+        const ig = selected ? (selected.getAttribute("data-ig") || "") : "";
+        pill.textContent = ig ? ("IG: " + ig) : "IG: —";
+      }
+
+      function maybeAutofillChannel(lang){
+        const hidden = (lang === "en") ? enPageHidden : esPageHidden;
+        const ch = (lang === "en") ? enChannel : esChannel;
+        if (!hidden.value) return;
+
+        if (ch.value && ch.value.trim().length > 0) return;
+
+        const root = document.getElementById(lang === "en" ? "xsel_en" : "xsel_es");
+        const selected = root ? root.querySelector('.xselect-opt[aria-selected="true"]') : null;
+        const name = selected ? (selected.getAttribute("data-label") || "") : "";
+        const s = slugify(name);
+        if (s) ch.value = s;
+      }
+
+      function validate(){
+        warn.style.display = "none";
+
+        const enOn = !!enEnabled.checked;
+        const esOn = !!esEnabled.checked;
+
+        if (!enOn && !esOn) {
+          warnMsg.textContent = "Enable at least one language (EN or ES).";
+          warn.style.display = "block";
+          return false;
+        }
+
+        if (enOn) {
+          if (!enPageHidden.value) {
+            warnMsg.textContent = "English is enabled: please select a Facebook Page.";
+            warn.style.display = "block";
+            return false;
+          }
+          if (!enChannel.value.trim()) {
+            warnMsg.textContent = "English is enabled: please set a channel key.";
+            warn.style.display = "block";
+            return false;
+          }
+        }
+
+        if (esOn) {
+          if (!esPageHidden.value) {
+            warnMsg.textContent = "Spanish is enabled: please select a Facebook Page.";
+            warn.style.display = "block";
+            return false;
+          }
+          if (!esChannel.value.trim()) {
+            warnMsg.textContent = "Spanish is enabled: please set a channel key.";
+            warn.style.display = "block";
+            return false;
+          }
+        }
+
+        return true;
+      }
+
+      function setupXSelect(root){
+        const hiddenId = root.getAttribute("data-target");
+        const hidden = document.getElementById(hiddenId);
+        const btn = root.querySelector(".xselect-btn");
+        const valueEl = root.querySelector(".xselect-value");
+        const search = root.querySelector(".xselect-search");
+        const opts = Array.from(root.querySelectorAll(".xselect-opt"));
+
+        function open(){
+          if (btn.disabled) return;
+          root.classList.add("open");
+          btn.setAttribute("aria-expanded","true");
+          setTimeout(()=>{ if (!search.disabled) search.focus(); }, 0);
+        }
+        function close(){
+          root.classList.remove("open");
+          btn.setAttribute("aria-expanded","false");
+          search.value = "";
+          opts.forEach(opt => { opt.style.display = ""; });
+        }
+
+        btn.addEventListener("click", (e)=>{
+          e.preventDefault();
+          root.classList.contains("open") ? close() : open();
+        });
+
+        document.addEventListener("click", (e)=>{
+          if (!root.contains(e.target)) close();
+        });
+
+        function selectOpt(opt, { silent } = { silent:false }){
+          const v = opt.getAttribute("data-value") || "";
+          const label = opt.getAttribute("data-label")
+            || opt.querySelector(".xselect-opt-title")?.textContent?.trim()
+            || (v ? v : "— Select a Page —");
+
+          hidden.value = v;
+          valueEl.textContent = v ? label : "— Select a Page —";
+
+          opts.forEach(o => o.setAttribute("aria-selected", "false"));
+          opt.setAttribute("aria-selected","true");
+
+          close();
+
+          if (!silent) hidden.dispatchEvent(new Event("change", { bubbles:true }));
+        }
+
+        function selectByValue(v){
+          const opt = opts.find(o => (o.getAttribute("data-value") || "") === String(v || ""));
+          if (!opt) return false;
+          selectOpt(opt, { silent:true });
+          return true;
+        }
+
+        opts.forEach(opt=>{
+          opt.addEventListener("click", ()=>selectOpt(opt));
+          opt.addEventListener("keydown", (ev)=>{
+            if (ev.key === "Enter" || ev.key === " ") { ev.preventDefault(); selectOpt(opt); }
+          });
+        });
+
+        search.addEventListener("input", ()=>{
+          const q = search.value.trim().toLowerCase();
+          opts.forEach(opt=>{
+            const t = (opt.textContent || "").toLowerCase();
+            opt.style.display = t.includes(q) ? "" : "none";
+          });
+        });
+
+        // INIT: si venimos en modo "editar" con hidden pre-relleno, reflejarlo en el xselect.
+        const initial = hidden.value;
+        if (initial && selectByValue(initial)) {
+          hidden.dispatchEvent(new Event("change", { bubbles:true }));
+        } else {
+          const init = opts[0];
+          if (init) selectOpt(init, { silent:true });
+        }
+      }
+
+      // Setup xselects
+      document.querySelectorAll(".xselect").forEach(setupXSelect);
+
+      // wire hidden changes
+      enPageHidden.addEventListener("change", () => { updateIgPill("en"); maybeAutofillChannel("en"); });
+      esPageHidden.addEventListener("change", () => { updateIgPill("es"); maybeAutofillChannel("es"); });
+
+      // Enable flags from backend (ya son SAFE y siempre existen)
+      const enInit = "<%= enEnabledInitSafe ? "1" : "0" %>" === "1";
+      const esInit = "<%= esEnabledInitSafe ? "1" : "0" %>" === "1";
+
+      enEnabled.checked = enInit;
+      esEnabled.checked = esInit;
+
+      // fallback solo si ninguno está activo
+      if (!enEnabled.checked && !esEnabled.checked) esEnabled.checked = true;
+
+      setEnabled("en", enEnabled.checked);
+      setEnabled("es", esEnabled.checked);
+
+      enEnabled.addEventListener("change", () => setEnabled("en", enEnabled.checked));
+      esEnabled.addEventListener("change", () => setEnabled("es", esEnabled.checked));
+
+      // Init pills
+      updateIgPill("en");
+      updateIgPill("es");
+
+      document.getElementById("mappingForm").addEventListener("submit", (ev) => {
+        if (!validate()) ev.preventDefault();
+      });
+    })();
+  </script>
+</body>
+</html>
