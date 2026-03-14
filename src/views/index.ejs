@@ -13,7 +13,7 @@
 
     <h3 style="margin:0 0 10px 0;">Conexiones activas</h3>
     <% if (!connections || connections.length === 0) { %>
-      <div class="muted">No hay conexiones todavía.</div>
+      <div class="muted">No hay conexiones todavia.</div>
     <% } else { %>
       <div style="display:grid; gap:10px;">
         <% connections.forEach(c => { %>
@@ -45,13 +45,15 @@
   <div class="card">
     <h3 style="margin-top:0;">Limitaciones</h3>
     <ul class="muted">
-      <li>Se puede <b>responder</b> comentarios vía API.</li>
-      <li>No hay endpoint oficial para <b>corazón/heart</b> en comentarios.</li>
-      <li>El bot evita duplicados guardando qué comentarios ya respondió.</li>
+      <li>Se puede <b>responder</b> comentarios via API.</li>
+      <li>No hay endpoint oficial para <b>corazon/heart</b> en comentarios.</li>
+      <li>El bot evita duplicados guardando que comentarios ya respondio.</li>
     </ul>
 
     <h3>Worker</h3>
-    <div class="muted">Ejecuta en otra terminal:</div>
+    <div class="muted">Manual o programado:</div>
     <pre>yarn worker</pre>
+    <div class="muted" style="margin-top:10px;">Modo continuo para desarrollo:</div>
+    <pre>yarn worker:loop</pre>
   </div>
 </div>

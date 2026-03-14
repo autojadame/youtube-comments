@@ -1,13 +1,13 @@
 # YouTube Comment Bot (DeepSeek)
 
-✅ Onboarding web: upload **Google OAuth client secret JSON** + connect YouTube channel  
-✅ Auto-renew tokens (refresh token)  
-✅ Worker: polls new comments and replies using DeepSeek  
-⚠️ YouTube **does not provide an official API to “heart”/react** to comments. You can only reply/moderate via Data API.
+- Onboarding web: upload Google OAuth client secret JSON + connect YouTube channel
+- Auto-renew tokens (refresh token)
+- Worker: polls new comments and replies using DeepSeek
+- YouTube does not provide an official API to "heart"/react to comments. You can only reply/moderate via Data API.
 
 ## Requirements
 - Node.js 20+ recommended
-- A Google Cloud OAuth Client (Web application) with **YouTube Data API v3 enabled**
+- A Google Cloud OAuth Client (Web application) with YouTube Data API v3 enabled
 - DeepSeek API key
 
 ## Quick start (yarn)
@@ -16,20 +16,31 @@ yarn
 cp .env.example .env
 yarn migrate
 yarn dev
-# in another terminal:
+# manual single run:
 yarn worker
+# or continuous mode for local dev:
+yarn worker:loop
 ```
 
 Open:
 - http://localhost:3000
 
 ## OAuth JSON upload flow
-1) Go to **/setup** and upload your `client_secret_*.json`
-2) The app will show you the required redirect URI: `BASE_URL/oauth2/callback`
-   - That URI must be added in Google Cloud Console (Credentials → OAuth 2.0 Client IDs → Authorized redirect URIs).
-3) Click **Connect channel**. Grant permission.
-4) You get a **Manage Link** (connection key) to manage/disable the bot.
+1. Go to `/setup` and upload your `client_secret_*.json`
+2. The app will show you the required redirect URI: `BASE_URL/oauth2/callback`
+3. Add that URI in Google Cloud Console -> Credentials -> OAuth 2.0 Client IDs -> Authorized redirect URIs
+4. Click `Connect channel` and grant permission
+5. You get a `Manage Link` (connection key) to manage/disable the bot
 
 ## Notes / Limitations
 - Replies are idempotent: each comment is replied once (tracked in SQLite).
 - The worker uses `commentThreads.list(allThreadsRelatedToChannelId=...)` and `comments.insert` for replies.
+
+## Cron every 30 minutes
+Use `yarn worker` for a single pass and let `cron` schedule it.
+
+Example entry for `crontab -e`:
+
+```cron
+*/30 * * * * cd /path/to/youtube-meta-bot && /usr/bin/env yarn worker >> /path/to/youtube-meta-bot/worker.log 2>&1
+```

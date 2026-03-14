@@ -1,16 +1,16 @@
 <div class="card">
-  <h1 class="h1">Canal conectado ✅</h1>
-  <p class="muted">Tu bot ya puede responder comentarios (cuando el worker esté corriendo).</p>
+  <h1 class="h1">Canal conectado</h1>
+  <p class="muted">Tu bot ya puede responder comentarios cuando se ejecute el worker, ya sea manualmente, con cron o en modo continuo.</p>
 
   <h3>Canal</h3>
   <pre><%= channelTitle %> (ID: <%= channelId %>)</pre>
 
-  <h3>Enlace de gestión (guárdalo)</h3>
+  <h3>Enlace de gestion (guardalo)</h3>
   <div class="flash ok">Este enlace te permite activar/desactivar el bot sin volver a OAuth.</div>
   <pre><%= manageUrl %></pre>
 
   <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:14px;">
-    <a class="btn secondary" href="<%= manageUrl %>">Abrir gestión</a>
+    <a class="btn secondary" href="<%= manageUrl %>">Abrir gestion</a>
     <a class="btn" href="/">Volver</a>
   </div>
 </div>

@@ -172,14 +172,27 @@ function buildUserPrompt(lang, commentText) {
 }
 
 async function loop() {
-  logger.info({ interval: POLL_INTERVAL_SECONDS }, "Worker started");
+  logger.info({ interval: POLL_INTERVAL_SECONDS }, "Worker started in loop mode");
   while (true) {
     await runOnce();
     await sleep(POLL_INTERVAL_SECONDS * 1000);
   }
 }
 
-loop().catch((e) => {
+async function main() {
+  const loopMode = process.argv.includes("--loop");
+
+  if (loopMode) {
+    await loop();
+    return;
+  }
+
+  logger.info("Worker started in single-run mode");
+  await runOnce();
+  logger.info("Worker finished");
+}
+
+main().catch((e) => {
   logger.error(e, "Worker crashed");
   process.exit(1);
 });
